@@ -1,0 +1,7 @@
+VOC*
+.idea
+model_data
+logs
+2007_train.txt
+2007_val.txt
+__pycache__
