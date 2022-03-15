@@ -11,7 +11,7 @@ from nets.yolo import YoloBody
 from utils.utils import (cvtColor, get_anchors, get_classes, preprocess_input,
                          resize_image)
 from utils.utils_bbox import DecodeBox
-from utils.sort import Sort
+from track.sort import Sort
 
 '''
 训练自己的数据集必看注释！

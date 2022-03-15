@@ -5,3 +5,4 @@ logs
 2007_train.txt
 2007_val.txt
 __pycache__
+*.mp4
