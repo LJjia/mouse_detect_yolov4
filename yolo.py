@@ -92,6 +92,8 @@ class YOLO(object):
         # 默认16batch
         self.infer_time_total=0
         self.infer_img_total = 0
+        self.infer_time_last = 0
+        self.infer_period = 30
         if self.kalman:
             self.sort=Sort()
 
@@ -213,7 +215,7 @@ class YOLO(object):
 
         return image
 
-    def que_model_que(self,src_que,dst_que,wait_time=4,min_batch=16):
+    def model_que(self,frame,dst_que,wait_time=4):
         '''
         从模型中读数据,经过预测和非极大值抑制,送到另一个queue中,每次批量读取一个min_batch的数据,
         感觉这样fps可以起飞
@@ -221,26 +223,17 @@ class YOLO(object):
         :param dst_que:
         :return:
         '''
+        # frame 为Image格式
+        image_shape = np.array(np.shape(frame)[0:2])
+        frame = cvtColor(frame)
+        # img是缩放过后需要送入网络的图片
+        img = resize_image(frame, (self.input_shape[1], self.input_shape[0]), self.letterbox_image)
+        # 转换成numpy 格式 再送入tensor
+        img = np.expand_dims(np.transpose(preprocess_input(np.array(img, dtype='float32')), (2, 0, 1)), 0)
+        img=torch.from_numpy(img)
 
-        data=None
-        img_list=[]
-        for cnt in range(min_batch):
-            try:
-                img = src_que.get(timeout=wait_time)
-                img_list.append(img)
-                if data==None:
-                    # 第一次调用
-                    data=torch.Tensor(0,img.shape[1],img.shape[2],img.shape[3])
-                    image_shape = img.shape
-            except Exception as e:
-                # 超时说明没有完整的16帧了,直接准备退出
-                print("error ",e)
-                return
-            img=torch.from_numpy(img)
-            if self.cuda:
-                img=img.cuda()
-            # 相当于append,一次组成16张图一起送
-            data=torch.cat((data,img),dim=1)
+        if self.cuda:
+            img=img.cuda()
 
         start_time=time.time()
         with torch.no_grad():
@@ -255,15 +248,20 @@ class YOLO(object):
             results = self.bbox_util.non_max_suppression(torch.cat(outputs, 1), self.num_classes, self.input_shape,
                         image_shape, self.letterbox_image, conf_thres = self.confidence, nms_thres = self.nms_iou)
         self.infer_time_total+=time.time()-start_time
-        self.infer_img_total+=min_batch
+        self.infer_img_total+=1
+        if self.infer_img_total%self.infer_period==0:
+            print('infer total cnt {:d} time {:2f} Fps {:2f}'.format(
+                self.infer_img_total,self.infer_time_total,self.infer_period/(self.infer_time_total-self.infer_time_last)))
+            self.infer_time_last =self.infer_time_total
         # 得到的数据和图像送入到队列中
         # results为一个list,如果没有目标数据为None,有目标为numpy.array类型
-        for idx in range(len(results)):
-            try:
-                dst_que.put((img_list[idx],results[idx]),timeout=wait_time)
-            except Exception as e:
-                print("error ",e,'time out')
-        return
+        try:
+            dst_que.put((frame, results[0],self.infer_img_total), timeout=wait_time)
+        except Exception as e:
+            print("error ", e, 'time out')
+            return False
+
+        return True
 
 
 
