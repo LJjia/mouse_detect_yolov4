@@ -12,7 +12,7 @@ from multiprocessing import Queue
 from yolo import YOLO
 
 if __name__ == "__main__":
-    model_path = 'logs/ep017-loss0.703-val_loss0.360.pth'
+    model_path = 'logs/detect_model.pth'
     yolo = YOLO(cuda=True,model_path=model_path)
     #----------------------------------------------------------------------------------------------------------#
     #   mode用于指定测试的模式：
@@ -31,7 +31,8 @@ if __name__ == "__main__":
     #   video_path、video_save_path和video_fps仅在mode='video'时有效
     #   保存视频时需要ctrl+c退出或者运行到最后一帧才会完成完整的保存步骤。
     #----------------------------------------------------------------------------------------------------------#
-    video_path      = "video_decode/video/mouse_two.mp4"
+    # video_path      = "D:/QQFileRecv/行为学学习素材/10.mpg"
+    video_path = "D:/data/video/mouse/white_mouse3.mp4"
     # video_path = 0
     video_save_path = ""
     video_fps       = 25.0
@@ -71,7 +72,7 @@ if __name__ == "__main__":
     elif mode == "video":
 
         disp_que=Queue(80)
-        p_disp = draw_and_disp.DispImgProc(disp_que)
+        p_disp = draw_and_disp.DispImgProc(disp_que,dump2file='mouse_track.log')
         p_disp.start()
         if (video_path != 0) and (not os.path.exists(video_path)):
             raise FileExistsError("%s not found" % video_path)

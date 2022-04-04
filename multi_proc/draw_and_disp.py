@@ -20,6 +20,9 @@ from PIL import ImageDraw, ImageFont,Image
 from utils.utils import (cvtColor, get_anchors, get_classes, preprocess_input,
                          resize_image)
 
+'''
+以下两个类用作测试
+'''
 class MainProcess(Process): #继承Process类
     def __init__(self,name,msg_que):
         super(MainProcess,self).__init__()
@@ -104,7 +107,7 @@ class DispImgProc(Process):
         "classes_path": 'model_data/voc_classes.txt',
     }
     s_prco_cnt=0
-    def __init__(self, src_que, name='DispImgProc', wait_time=5,prt_msg=False):
+    def __init__(self, src_que, name='DispImgProc', wait_time=5,prt_msg=False,dump2file=None):
         super().__init__()
         self.name = name + '_' + str(VideoDecodeProc.s_prco_cnt)
         VideoDecodeProc.s_prco_cnt += 1
@@ -119,6 +122,11 @@ class DispImgProc(Process):
         self.wait_time=wait_time
         self.kalman=Sort()
         self.prt_msg=prt_msg
+        if dump2file:
+            # 重开一个文件记录
+            with open(dump2file,'w') as f:
+                pass
+        self.dump2file=dump2file
         self.class_names, self.num_classes = get_classes(self.classes_path)
         # ---------------------------------------------------#
         #   画框设置不同的颜色
@@ -215,6 +223,10 @@ class DispImgProc(Process):
             # 是否打印目标
             if self.prt_msg:
                 print(label, top, left, bottom, right)
+            if self.dump2file:
+                with open(self.dump2file, 'a') as file:
+                    corrd_str=str(int(top + bottom)) + ',' + str(int(left + right))+','+str(score)+'\n'
+                    file.write(corrd_str)
 
             if top - label_size[1] >= 0:
                 text_origin = np.array([left, top - label_size[1]])

@@ -25,7 +25,7 @@ class YoloDataset(Dataset):
         self.length             = len(self.annotation_lines)
         self.mosaic             = mosaic
         self.train              = train
-        self.mosaic_ratio=0.7
+        self.mosaic_ratio=0.05
 
     def __len__(self):
         return self.length
@@ -366,9 +366,9 @@ class YoloDataset(Dataset):
         # 再把图片重叠在其他区域的框框删除掉,以及将4个图片的框框融合成1个图片的
         # 32是因为yolo默认的416的输入会缩放到13,26,52特征图是缩放到,会缩放到
         # 分别对应原图上的32,16,8个像素
-        # 最小的为8,小于8个像素的目标可能经过切割,因此效果不好
+        # 最小的为8,小于32个像素的目标可能经过切割,因此效果不好
         # 标定没有意义
-        minest_size=8
+        minest_size=32
         new_boxes = self.merge_bboxes(box_datas, cutx, cuty,minest_size)
 
         return new_image, new_boxes

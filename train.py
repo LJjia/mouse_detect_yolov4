@@ -70,7 +70,7 @@ if __name__ == "__main__":
     #   网络一般不从0开始训练，至少会使用主干部分的权值，有些论文提到可以不用预训练，主要原因是他们 数据集较大 且 调参能力优秀。
     #   如果一定要训练网络的主干部分，可以了解imagenet数据集，首先训练分类模型，分类模型的 主干部分 和该模型通用，基于此进行训练。
     #----------------------------------------------------------------------------------------------------------------------------#
-    model_path      = 'logs/ep040-loss0.819-val_loss0.401.pth'
+    model_path      = 'logs/first_train_ep040-loss1.398-val_loss0.765.pth'
     # model_path = ''
     #------------------------------------------------------#
     #   输入的shape大小，一定要是32的倍数
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     #   占用的显存较小，仅对网络进行微调
     #----------------------------------------------------#
     Init_Epoch          = 0
-    Freeze_Epoch        = 10
+    Freeze_Epoch        = 12
     Freeze_batch_size   = 24
     Freeze_lr           = 4e-3
     #----------------------------------------------------#
@@ -182,7 +182,7 @@ if __name__ == "__main__":
     num_train   = len(train_lines)
     num_val     = len(val_lines)
     print('\ntrain dataset len',num_train)
-    print('val dataset len', num_train)
+    print('val dataset len', num_val)
     bSaveModel=False
     #------------------------------------------------------#
     #   主干特征提取网络特征通用，冻结训练可以加快训练速度

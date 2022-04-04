@@ -6,3 +6,4 @@ logs
 2007_val.txt
 __pycache__
 *.mp4
+video_decode/*

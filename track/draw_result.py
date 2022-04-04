@@ -25,19 +25,26 @@ def get_result(src_path):
     ret=np.empty((0,2),dtype=np.int32)
     for line in lines:
         line=line.strip().split(',')
-        pos=list(map(str2int,line))[:4]
-        # print(pos)
-        center=np.array([int((pos[2]+pos[0])/2),int((pos[3]+pos[1])/2)])
+        # x1y1x2y2+label+conf的形式
+        # pos=list(map(str2int,line))[:4]
+        # center=np.array([int((pos[2]+pos[0])/2),int((pos[3]+pos[1])/2)])
+        # center+conf的形式
+        center = np.array(list(map(str2int, line))[:2])
         # print(center[None,:])
         ret=np.append(ret,center[None,:],axis=0)
 
     # print(ret,ret.shape)
     return ret
 
-class PlotFig(object):
+class PlotFigAni(object):
+    '''
+    动图格式的画图对象
+    '''
     def __init__(self,x=0,y=0,title="animation"):
-        self.x_range=(0,100)
-        self.y_range=(50,700)
+        # self.x_range=(0,100)
+        # self.y_range=(50,700)
+        self.x_range = (0, 1500)
+        self.y_range = (0, 1500)
         self.xx=[]
         self.yy=[]
 
@@ -87,15 +94,46 @@ class PlotFig(object):
         else:
             plt.show()
 
+class PlotFigStatic(object):
+    '''
+    静态图的画图对象
+    '''
+    def __init__(self, x=0, y=0, title="animation"):
+        self.x_range = (0, 800)
+        self.y_range = (0, 500)
+        self.xx = []
+        self.yy = []
 
+        self.fig = plt.figure(tight_layout=True)
 
+        # 设置坐标范围
+        # axis = plt.axes(xlim=(self.x_range[0], self.x_range[1]),
+        #                 ylim=(self.y_range[0], self.y_range[1]))
+        axis = plt.axes()
+        axis.xaxis.set_ticks_position('top')  # 将x轴的位置设置在顶部
+        axis.invert_yaxis()  # y轴反向
+        plt.title(title)
+        plt.grid()
+        self.cnt = 0
+    def feed(self,data,save_file=None):
+        print('input shape', data.shape)
+        plt.plot(data[:,0],data[:,1])
+        if(save_file!=None):
+            # 保存gif
+            # pw_writer = animation.PillowWriter(fps=60)
+            # ani.save(save_file, writer=pw_writer)
+            # 保存视频
+            ani.save(save_file, writer='ffmpeg',fps=25)
+        else:
+            plt.show()
 
 
 
 
 
 if __name__ == '__main__':
-    src_res = 'kalman.txt'
+    src_res = '../mouse_track.log'
     data=get_result(src_res)
-    ani=PlotFig(title='kalman')
-    ani.feed(data,'kalman.mp4')
+    ani=PlotFigStatic(title='kalman')
+    ani.feed(data)
+    # ani.feed(data,'video.mp4')
